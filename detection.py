@@ -266,11 +266,6 @@ def detect_sudoku(sudoku_image, prev):
         else:
             pred = np.append(pred, 0)
 
-    # pred = np.array([3, 2, 1, 4, 5, 8, 6, 7, 9, 7, 5, 6, 1, 9, 3, 2, 8, 4, 8, 4, 9, 6, 2, 7,
-    #                  3, 1, 5, 1, 3, 2, 5, 4, 6, 7, 9, 8, 6, 8, 4, 2, 7, 9, 5, 3, 1, 9, 7, 5,
-    #                  3, 8, 1, 4, 6, 2, 4, 6, 7, 9, 1, 5, 8, 2, 3, 2, 9, 8, 7, 3, 4, 1, 5, 6,
-    #                  5, 1, 3, 8, 6, 2, 9, 4, 7])
-
     if (not prev is None) and equal_matrices(prev, pred):
         if all_board_non_zero(pred.reshape(9, 9)):
             answer_matrix = print_solution(digits, cropped, prev)
@@ -348,23 +343,3 @@ def run_detection(sudoku_image, prev):
     prev = copy.deepcopy(answer_matrix)
 
     return answer_matrix
-
-
-# sudoku_image = 'images/sudoku1.jpeg'
-# original = cv2.imread(sudoku_image, cv2.IMREAD_GRAYSCALE)
-# original = cv2.resize(original, (381,381))
-#
-# # sudoku_image = 'frames/frame.jpg'
-# prev = np.array([3, 2, 1, 4, 5, 8, 6, 7, 9, 7, 5, 6, 1, 9, 3, 2, 8, 4, 8, 4, 9, 6, 2, 7,
-#  3, 1, 5, 1, 3, 2, 5, 4, 6, 7, 9, 8, 6, 8, 4, 2, 7, 9, 5, 3, 1, 9, 7, 5,
-#  3, 8, 1, 4, 6, 2, 4, 6, 7, 9, 1, 5, 8, 2, 3, 2, 9, 8, 7, 3, 4, 1, 5, 6,
-#  5, 1, 3, 8, 6, 2, 9, 4, 7])
-# answer = run_detection(sudoku_image, None)
-# if answer is not None:
-#     #show_image(answer)
-#     cv2.imwrite("frames/output.jpg", answer)
-#     print(answer.shape[0],answer.shape[1])
-#     cv2.imshow("question", original)
-#     cv2.imshow("answer", answer)
-#     cv2.waitKey(0)
-#     cv2.destroyAllWindows()
