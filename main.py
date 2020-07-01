@@ -21,11 +21,3 @@ cv2.imshow("questions", question)
 cv2.imshow("answer", image)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
-# # get the arguments value
-# if args.language == 'Python':
-#     print("I love Python too")
-# else:
-#     print("Learn Python, you will like it")
-#
-# print(f'Hello {args.name}, this was a simple introduction to argparse module')
