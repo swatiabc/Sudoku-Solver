@@ -15,7 +15,7 @@ args = parser.parse_args()
 question = cv2.imread(args.language)
 question = cv2.resize(question, (381,381))
 
-image = detection.run_detection(args.language, None)
+image = detection.run_detection(args.language)
 
 cv2.imshow("questions", question)
 cv2.imshow("answer", image)
