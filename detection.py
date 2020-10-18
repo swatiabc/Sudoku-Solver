@@ -34,20 +34,6 @@ def crop_and_warp(img, crop_rect):
     return cv2.warpPerspective(img, m, (int(side), int(side)))
 
 
-# def display_points(in_img, points, radius=5, colour=(0, 0, 255)):
-#     img = in_img.copy()
-#     if len(colour) == 3:
-#         if len(img.shape) == 2:
-#             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-#         elif img.shape[2] == 1:
-#             img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-#
-#     for point in points:
-#         img = cv2.circle(img, tuple(int(x) for x in point), radius, colour, -1)
-#     show_image(img)
-#     return img
-
-
 def find_corners_of_largest_polygon(img):
     """
     to find the largest continous shape in the binary image
@@ -66,15 +52,6 @@ def find_corners_of_largest_polygon(img):
     bottom_left, _ = min(enumerate([pt[0][0] - pt[0][1] for pt in polygon]), key=operator.itemgetter(1))
     top_right, _ = max(enumerate([pt[0][0] - pt[0][1] for pt in polygon]), key=operator.itemgetter(1))
     return [polygon[top_left][0], polygon[top_right][0], polygon[bottom_right][0], polygon[bottom_left][0]]
-
-
-# def plot_many_images(images, titles, rows=1, columns=2):
-#     for i, image in enumerate(images):
-#         plt.subplot(rows, columns, i + 1)
-#         plt.imshow(image, 'gray')
-#         plt.title(titles[i])
-#         plt.xticks([]), plt.yticks([])
-#     plt.show()
 
 
 def show_image(img):
@@ -124,14 +101,6 @@ def infer_grid(img):
             """coordinates of all teh 81 points are stored"""
             squares.append((p1, p2))
     return squares
-
-
-# def display_rects(in_img, rects, colour=255):
-#     img = in_img.copy()
-#     for rect in rects:
-#         img = cv2.rectangle(img, tuple(int(x) for x in rect[0]), tuple(int(x) for x in rect[1]), colour)
-#     show_image(img)
-#     return img
 
 
 def cut_from_rect(img, rect):
@@ -247,17 +216,6 @@ def get_digits(img, squares, size):
     return digits
 
 
-# def show_digits(digits, colour=255):
-#     rows = []
-#     with_border = [cv2.copyMakeBorder(img.copy(), 1, 1, 1, 1, cv2.BORDER_CONSTANT, None, colour) for img in digits]
-#     for i in range(9):
-#         row = np.concatenate(with_border[i * 9:((i + 1) * 9)], axis=1)
-#         rows.append(row)
-#     answer = show_image(np.concatenate(rows))
-#     # answer=answer.T
-#     return answer
-
-
 def equal_matrices(max_a, max_b):
     for i in range(81):
         if max_a[i] != max_b[i]:
@@ -273,9 +231,8 @@ def all_board_non_zero(matrix):
     return True
 
 
-def detect_sudoku(sudoku_image, prev):
+def detect_sudoku(sudoku_image):
     print("---------------prev----------")
-    print(prev)
     # original = cv2.imread('frames/frame.jpg', cv2.IMREAD_GRAYSCALE)
     original = cv2.imread(sudoku_image, cv2.IMREAD_GRAYSCALE)  # read image
     # original = sudoku_image
@@ -314,57 +271,43 @@ def detect_sudoku(sudoku_image, prev):
         else:
             pred = np.append(pred, 0)
 
-    # pred = np.array([3, 2, 1, 4, 5, 8, 6, 7, 9, 7, 5, 6, 1, 9, 3, 2, 8, 4, 8, 4, 9, 6, 2, 7,
-    #                  3, 1, 5, 1, 3, 2, 5, 4, 6, 7, 9, 8, 6, 8, 4, 2, 7, 9, 5, 3, 1, 9, 7, 5,
-    #                  3, 8, 1, 4, 6, 2, 4, 6, 7, 9, 1, 5, 8, 2, 3, 2, 9, 8, 7, 3, 4, 1, 5, 6,
-    #                  5, 1, 3, 8, 6, 2, 9, 4, 7])
-
-    if (not prev is None) and equal_matrices(prev, pred):
-        if all_board_non_zero(pred.reshape(9, 9)):
-            answer_matrix = print_solution(digits, cropped, prev)
-            # show_image(answer_matrix)
-        return answer_matrix, cropped
-
-    else:
-        pred = pred.reshape(9, 9)
-        print("pred")
-        print(pred)
-        print(type(digits), type(cropped))
-        return pred, digits, cropped
+    pred = pred.reshape(9, 9)
+    print("pred")
+    print(pred)
+    print(type(digits), type(cropped))
+    return pred, digits, cropped
 
 
-def get_sudoku(sudoku_image, prev):
-    method_return = detect_sudoku(sudoku_image, prev)
-    if method_return is None:
-        return None
-    if len(method_return) is 2:
-        return method_return
-    matrix, digits, cropped = method_return
+def get_sudoku(sudoku_image):
+    """this method gets the answer for the sudoku"""
+    method_return = detect_sudoku(sudoku_image)
+    """digits : grids of numbers present in the image, matrix is predicted numbers"""
+    matrix, digits, cropped = method_return  # cropped sudoku with changed and warped perspective
     print("matrix")
     matrix = matrix.tolist()
     answer = []
     count = 0
+    """sudoku.py called here to solve the sudoku"""
     for solution in sudoku.solve_sudoku((3, 3), matrix):
         if count > 10:
             break
         count = count + 1
         answer.append([*solution])
-        # print(*solution, sep='\n')
-    if count > 10:
-        return
+
     answer = np.array(answer)
     answer = answer.reshape(9, 9)
     return answer.flatten(), digits, cropped
 
 
 def print_solution(digits, images, ans):
-    width = images.shape[1] // 9
-    height = images.shape[0] // 9
+    """returns answered images"""
+    width = images.shape[1] // 9  # width of every grid
+    height = images.shape[0] // 9  # height of every grid
     for i in range(9):
         for j in range(9):
-            if np.any(digits[i * 9 + j]):
+            if np.any(digits[i * 9 + j]):  # checks if the grid already has a number or not
                 continue
-            text = str(int(ans[i * 9 + j]))
+            text = str(int(ans[i * 9 + j]))  # text: it will be written in the empty grids
             off_set_x = width // 15
             off_set_y = height // 15
             font = cv2.FONT_HERSHEY_SIMPLEX
@@ -381,37 +324,13 @@ def print_solution(digits, images, ans):
     return images
 
 
-def run_detection(sudoku_image, prev):
-    method_return = get_sudoku(sudoku_image, prev)
-    if method_return is None:
-        return None
-
-    if len(method_return) is 2:
-        answer_matrix, cropped = get_sudoku(sudoku_image, prev)
-        return answer_matrix
-
-    ans, digits, cropped = method_return
+def run_detection(sudoku_image):
+    """this method is called from main.py"""
+    method_return = get_sudoku(sudoku_image)
+    """ans: answer matrix of sudoku, digits: grids of numbers of sudoku"""
+    ans, digits, cropped = method_return  # cropped sudoku with changed and warped perspective
     print(ans)
     answer_matrix = print_solution(digits, cropped, ans)
-    prev = copy.deepcopy(answer_matrix)
-
+    """answer_matrix: answered image of sudoku"""
     return answer_matrix
 
-# sudoku_image = 'images/sudoku1.jpeg'
-# original = cv2.imread(sudoku_image, cv2.IMREAD_GRAYSCALE)
-# original = cv2.resize(original, (381,381))
-#
-# # sudoku_image = 'frames/frame.jpg'
-# prev = np.array([3, 2, 1, 4, 5, 8, 6, 7, 9, 7, 5, 6, 1, 9, 3, 2, 8, 4, 8, 4, 9, 6, 2, 7,
-#  3, 1, 5, 1, 3, 2, 5, 4, 6, 7, 9, 8, 6, 8, 4, 2, 7, 9, 5, 3, 1, 9, 7, 5,
-#  3, 8, 1, 4, 6, 2, 4, 6, 7, 9, 1, 5, 8, 2, 3, 2, 9, 8, 7, 3, 4, 1, 5, 6,
-#  5, 1, 3, 8, 6, 2, 9, 4, 7])
-# answer = run_detection(sudoku_image, None)
-# if answer is not None:
-#     #show_image(answer)
-#     cv2.imwrite("frames/output.jpg", answer)
-#     print(answer.shape[0],answer.shape[1])
-#     cv2.imshow("question", original)
-#     cv2.imshow("answer", answer)
-#     cv2.waitKey(0)
-#     cv2.destroyAllWindows()
